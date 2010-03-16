@@ -1,0 +1,190 @@
+
+
+#include <avr/io.h>
+#include <util/delay.h>
+
+//#include <avr/interrupt.h>
+
+
+/*
+ISR( INT0_vect){
+	uint32_t i;
+	for( i=0; i<1000; i++ ) {
+	     asm volatile ("nop");
+	}
+
+	PORTC ^= (1 << PORTC5);	
+	
+}
+
+int main(void){
+//	uint32_t i;
+	DDRD |= (1 << PORTD5);
+//	PORTD |= (1 << PORTD5);
+//	PORTD |= (1 << PORTD2);    //aktivera pullup inport 
+//	EICRA |= (1 << ISC01) | (1 << ISC00);
+//	EIMSK |= (1 << INT0);
+//	sei();
+	// timmer
+	TCCR0A |=  (1 << COM0B1) | (1 << WGM01)| (1 << WGM00 );
+	TCCR0B |= (1<< CS00)| (1 << WGM02);
+	OCR0A = 96;//
+	OCR0B = 0;//puls bredd
+	//
+	
+	for(;;) {
+		if(PINC &(1<<PORTC4)){
+			PORTC |= (1 << PORTC5);
+		}else{
+			PORTC &= ~(1 << PORTC5);
+		}	
+		
+		//for( i=0; i<1000000; i++ ) {
+		//	asm volatile ("nop");
+		//}
+	}
+	return 0;
+}
+/*
+//-----------------------------------------------------------------------------
+//  ATmega168
+//  Internal 8 MH RC Osc.
+//  (1/8M = 125 ns)
+//-----------------------------------------------------------------------------
+
+#include <avr/io.h>
+
+#define BAUD    9600
+#define UBRR    F_CPU/16/BAUD-1
+
+//-----------------------------------------------------------------------------
+//  Initialize USART0
+//-----------------------------------------------------------------------------
+voiad init_USART0(unsigned int baud)
+{
+    UBRR0 = baud;                       // Set Baudrate
+    UCSR0C = (3<<UCSZ00);               // Character Size 8 bit
+    UCSR0B |= _BV(RXEN0) | _BV(TXEN0);  // Receiver and Transmitter Enable
+}
+
+//-----------------------------------------------------------------------------
+//  Set Receive Interrupt Enable
+//-----------------------------------------------------------------------------
+void setRXCIE_USART0()
+{
+    UCSR0B |= _BV(RXCIE0);
+}
+
+//-----------------------------------------------------------------------------
+//  Receive 1 byte Data
+//-----------------------------------------------------------------------------
+unsigned char receive_1byte_USART0(void)
+{
+    loop_until_bit_is_set(UCSR0A, RXC0);
+    return UDR0;
+}
+
+//-----------------------------------------------------------------------------
+//  Transmit 1 byte Data
+//-----------------------------------------------------------------------------
+void transmit_1byte_USART0(unsigned char data)
+{
+    loop_until_bit_is_set(UCSR0A, UDRE0);
+    UDR0 = data;
+}
+
+//-----------------------------------------------------------------------------
+//  Transmit String Data
+//-----------------------------------------------------------------------------
+void transmit_str_USART0(char *str)
+{
+    while (*str != 0) {
+        transmit_1byte_USART0(*str);
+        *str++;
+    }
+}
+
+//-----------------------------------------------------------------------------
+//  Transmit Four-Digit Integer
+//-----------------------------------------------------------------------------
+void transmit_4digit_USART0(int num)
+{
+    unsigned char temp;
+    int digit = 1000;
+
+    while (digit != 0) {
+        temp = num / digit;
+        transmit_1byte_USART0('0'+temp);
+        num -= (digit*temp);
+        digit /= 10;
+    }
+}
+*/
+//-----------------------------------------------------------------------------
+//  Main
+//-----------------------------------------------------------------------------
+int main()
+{
+    DDRC |= (1 << PORTC5);//kör syd
+   // PORTC |= (1 << PORTC5);  //aktivera utport
+    DDRC |= (1 << PORTC4);//stilla
+    DDRC |= (1 << PORTC3); // kör nord
+
+
+    DDRD |= (1 << PORTD2);//upp kran
+    DDRD |= (1 << PORTD3);   //ner kran
+
+//PORTC1 är av någon anledning trasig
+    PORTD |= (1 << PORTD2);
+    PORTD |= (1 << PORTD3);
+
+    PORTC |= (1<<PORTC0);// aktiverar pullup på nordsidan
+    PORTC |= (1<<PORTC2);// aktiverar pullup på sydsidan
+
+
+    //init_USART0(UBRR);  // initialize USART0
+PORTC |= (1 << PORTC3);
+    while (1) {
+	if((!(PINC &(1<<PORTC2))) && PINC &(1<<PORTC5)){// if sats på port c4
+			
+		PORTC &= ~(1 << PORTC5);
+
+		PORTC |= (1 << PORTC4);
+		PORTD |= (1 << PORTD2);
+		_delay_ms( 1000 );
+		PORTD &= ~(1 << PORTD2);
+		_delay_ms( 1000 );		
+		PORTD |= (1 << PORTD3);
+		_delay_ms( 1000 );
+		PORTD &= ~(1 << PORTD3);
+		PORTC &= ~(1 << PORTC4);
+		PORTC |= (1 << PORTC3);
+		
+		
+	}
+		
+	if((!(PINC &(1<<PORTC0)) && PINC &(1<<PORTC3)) ){
+			
+		PORTC &= ~(1 << PORTC3);
+		PORTC |= (1 << PORTC4);
+		PORTD |= (1 << PORTD2);
+		_delay_ms( 1000 );
+		PORTD &= ~(1 << PORTD2);
+		_delay_ms( 500 );		
+		PORTD |= (1 << PORTD3);
+		_delay_ms( 1000 );
+		PORTD &= ~(1 << PORTD3);
+		PORTC &= ~(1 << PORTC4);
+				
+		PORTC |= (1 << PORTC5);		
+		PORTC &= ~(1 << PORTC4);
+	}
+		
+	
+		
+	//_delay_ms( 500 );   
+	//_delay_ms( 500 ); 
+    }
+
+    return 0;
+}
